@@ -3,6 +3,9 @@ uuid = "1c04a6f2-cc8a-4654-b66f-6a97706376ba"
 authors = ["harryscholes <harryscholes@users.noreply.github.com> and contributors"]
 version = "0.1.0"
 
+[deps]
+MacroTools = "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
+
 [compat]
 julia = "1"
 
