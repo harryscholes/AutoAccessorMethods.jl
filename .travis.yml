@@ -5,13 +5,9 @@ notifications:
 julia:
   - 1.0
   - 1.4
-  - nightly
 os:
   - linux
-  - osx
-  - windows
 arch:
-  - x64
   - x86
 cache:
   directories:
@@ -20,9 +16,6 @@ jobs:
   fast_finish: true
   allow_failures:
     - julia: nightly
-  exclude:
-    - arch: x86
-      os: osx
 after_success:
   - |
     julia -e '
