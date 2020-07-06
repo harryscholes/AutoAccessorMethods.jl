@@ -2,5 +2,16 @@ using AutoAccessorMethods
 using Test
 
 @testset "AutoAccessorMethods.jl" begin
-    # Write your tests here.
+    @testset "Accessor methods" begin
+        include("test_accessor_methods.jl")
+    end
+
+    @testset "Exports" begin
+        @testset "Don't export" begin
+            include("test_do_not_export_methods.jl")
+        end
+        @testset "Do export" begin
+            include("test_export_methods.jl")
+        end
+    end
 end
