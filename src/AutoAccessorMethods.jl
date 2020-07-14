@@ -3,6 +3,7 @@ module AutoAccessorMethods
 export @auto_accessor_methods
 
 using MacroTools
+using MacroTools: postwalk
 
 """
     @auto_accessor_methods typ [ex=true]
@@ -77,41 +78,47 @@ julia> second_field(mt)
 
 ```
 """
-macro auto_accessor_methods(typ, ex=true)
-    typ.head == :struct ||
-        throw(ArgumentError("Must be called on a type definition: `struct ... end`"))
+macro auto_accessor_methods(expr, ex=true)
+    postwalk(expr) do expr
+        # Capture the type definition
+        @capture(expr, (struct T_{__} fields__ end) | (struct T_ fields__ end)) || return expr
 
-    # Type name
-    @capture(typ, struct T_{__} fields__ end) ||
-        @capture(typ, struct T_ fields__ end) ||
-        throw(ArgumentError("The name of the type could not be determined"))
+        # Fields
+        length(fields) > 0 ||
+            throw(ArgumentError("`$T` has no fields"))
 
-    # Fields
-    length(fields) > 0 ||
-        throw(ArgumentError("`$T` has no fields"))
+        field_names = map(fields) do field
+            @capture(field, var_::__) || @capture(field, var_)
+            var
+        end
 
-    field_names = map(fields) do field
-        @capture(field, var_::__) || @capture(field, var_)
-        var
-    end
+        # Accessor methods
+        accessors = Expr[]
+        for fn in field_names
+            push!(
+                accessors,
+                :($(esc(fn))(x::$(esc(T))) = getfield(x, Symbol($(esc(fn))))),
+            )
 
-    # Accessor methods
-    accessors = Expr[]
-    for fn in field_names
-        push!(
-            accessors,
-            :($(esc(fn))(x::$(esc(T))) = getfield(x, Symbol($(esc(fn))))),
-        )
+            if ex
+                push!(
+                    accessors,
+                    :(export $(esc(fn)))
+                )
+            end
+        end
 
-        if ex
-            push!(accessors, :(export $(esc(fn))))
+        return quote
+            $(esc(expr))
+            $(accessors...)
         end
     end
-
-    return quote
-        $(esc(typ))
-        $(accessors...)
-    end
 end
 
+# Trival macro to test nested macro invocations
+# TODO get this to work when defined in `test/runtests.jl`
+macro noop(expr)
+    esc(expr)
 end
+
+end # module

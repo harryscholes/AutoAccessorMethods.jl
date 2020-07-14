@@ -1,4 +1,5 @@
 using AutoAccessorMethods
+using AutoAccessorMethods: @noop
 using Test
 
 @testset "AutoAccessorMethods.jl" begin
